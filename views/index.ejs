@@ -1,0 +1,12 @@
+<% include _header %>
+
+<h1>Host an online poll!</h1>
+
+<% if(currentUser) { %>
+    <a href="/new-poll" class="btn btn-primary">New Poll</a>
+<% } else { %>
+    <h3>Sign in to make new poll</h3>
+<% } %>
+
+</body>
+</html>

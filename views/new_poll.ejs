@@ -1,0 +1,24 @@
+<% include _header %>
+
+
+<div style="max-width: 50%; margin: auto">
+  <h1>New poll</h1>
+  <% if(currentUser) { %>
+  <form action="/new-poll" method="post">
+    <div class="form-group">
+      <label for="poll-title">Title</label>
+      <input name="title" type="text" class="form-control" id="poll-title" required autofocus>
+    </div>
+    <div class="form-group">
+      <label for="poll-options">Poll options (comma separated)</label>
+      <input name="options" type="text" class="form-control" id="poll-options" placeholder="option A,option B,etc." required>
+    </div>
+    <input type="submit" value="Submit" class="btn btn-primary btn-block">
+  </form>
+  <% } else { %>
+  <h3>You must be logged in to make a new poll!</h2>
+  <% } %>
+</div>  
+
+</body>
+</html>
