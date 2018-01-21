@@ -199,6 +199,25 @@ app.post("/poll/:num", function(req, res, next) {
     
   });
 });
+
+app.get("/profile/:username", function(req, res, next) {
+  res.locals.username = req.params.username;
+  
+  Poll.find({createdBy: req.params.username}, function(err, polls) {
+    if(err) { return next(err); }
+    
+    res.locals.userPolls = [];
+    if(polls) {
+      for(var ii = polls.length - 1; ii >= 0; ii--) {
+        var title = polls[ii].title;
+        var link = "/poll/"+polls[ii].number;
+        res.locals.userPolls.push({title: title, link: link});
+      }
+    }    
+    res.render("profile");
+  });
+  
+});
       
 
 // listen for requests :)

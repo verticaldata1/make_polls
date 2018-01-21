@@ -1,0 +1,14 @@
+<% include _header %>
+
+<div class="jumbotron text-center" style="max-width: 80%; margin: auto">
+  <h4><%=username%>'s polls:<br><br></h4>
+  <div style="max-width: 60%; margin: auto">
+    <% userPolls.forEach(function(data) { %>
+      <a href=<%=data.link%> class="btn btn-block well"><%=data.title%></a>
+    <% }) %>
+  </div>
+  
+</div>
+
+</body>
+</html>
