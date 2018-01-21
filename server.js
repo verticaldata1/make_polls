@@ -40,8 +40,26 @@ app.use(function(req, res, next) {
 
 
 /* routes */
-app.get("/", function (req, res) {
-  res.render("index");
+app.get("/", function (req, res, next) {
+  Poll.find({}, function(err, polls) {
+    if(err) { return next(err); }
+    
+    res.locals.recentPolls = [];
+    if(polls) {
+      var recentPollsTmp = [];
+      for(var ii = polls.length - 1; ii >= 0; ii--) {
+        var title = polls[ii].title;
+        var link = "/poll/"+polls[ii].number;
+        recentPollsTmp.push({title: title, link: link});
+        if(recentPollsTmp.length >= 5)
+          break;
+      }
+      res.locals.recentPolls = recentPollsTmp;
+    }
+    
+    res.render("index");
+  });
+  
 });
 
 app.get("/login", function(req, res) {
@@ -86,11 +104,21 @@ app.post("/signup", function(req, res, next) {
 }));
 
 
+function isAuthenticated(req,res,next) {
+  if(req.isAuthenticated()){
+    next();
+  }
+  else {
+    req.flash("error", "Please log in first");
+    res.redirect("/login");
+  }
+}
+
 app.get("/new-poll", function(req, res) {
   res.render("new_poll");
 });
 
-app.post("/new-poll", function(req, res, next) {
+app.post("/new-poll", isAuthenticated, function(req, res, next) {
   var title = req.body.title;
   var options = req.body.options;
   options = options.split(",");
@@ -100,19 +128,76 @@ app.post("/new-poll", function(req, res, next) {
   }
   
   Poll.count({}, function(err , count){
-    console.log("Current poll count="+count);
     var newPoll = new Poll({
       number: count,
-      createdBy: res.locals.currentUser,
+      createdBy: res.locals.currentUser.username,
       title: title,
       options: options,
       values: values
     });
-    newPoll.save(next);
-    
-    
+    newPoll.save(function(err) {
+      req.user.polls.push(count);
+      req.user.save(function(err) {
+        if(err) {
+            next(err);
+            return;
+        }
+        res.redirect("/poll/"+count);
+      });
+    });        
   });
   
+});
+
+app.get("/poll/:num", function(req, res, next) {
+  var num = req.params.num;
+  
+  Poll.findOne({number: num}, function(err, poll) {
+    if(err) { return next(err); }
+    if(!poll) {
+      req.flash("error", "Poll not found");
+      return res.redirect("/");
+    }
+    
+    res.locals.pollTitle = poll.title;
+    res.locals.pollUser = poll.createdBy;
+    res.locals.pollOptions = poll.options;
+    res.locals.pollValues = poll.values;
+    res.locals.pollRedirect = "/poll/"+num;
+    res.render("view_poll");
+  });
+});
+
+app.post("/poll/:num", function(req, res, next) {
+  var num = req.params.num;
+  var pollUrl = "/poll/"+num;
+  
+  Poll.findOne({number: num}, function(err, poll) {
+    if(err) { return next(err); }
+    if(!poll) {
+      req.flash("error", "Error casting vote. Poll not found.");
+      return res.redirect(pollUrl);
+    }
+    
+    var idx = poll.options.indexOf(req.body.optionSelect);
+    if(idx === -1) {
+      req.flash("error", "Error casting vote. Selection not found.");
+      return res.redirect(pollUrl);
+    }    
+    var curVals = poll.values;
+    curVals[idx]++;
+    
+    Poll.update({number: num}, {values: curVals}, function(err) {
+      if(err) {
+        console.log(err);
+        next(err);
+        return;
+      }      
+      console.log("saved");
+      res.redirect(pollUrl);
+    });
+    
+  });
 });
       
 

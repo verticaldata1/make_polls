@@ -1,0 +1,27 @@
+<% include _header %>
+
+<div class="jumbotron" style="max-width: 80%; margin: auto">
+  <div class="row form-space">
+    <div class="col-xs-12 col-md-6">
+      <form action=<%=pollRedirect%> method="post">
+        <div class="form-group">
+          <label for="poll-selections" style="font-size:20px"><%=pollUser%> asks "<%= pollTitle %>"</label>
+          <select name="optionSelect" class="form-control" id="poll-selections">
+            <% for(var x = 0; x < pollOptions.length; x++) { %>
+              <option><%=pollOptions[x]%></option>
+            <% } %>        
+          </select>
+        </div>
+        <input type="submit" value="Submit" class="btn btn-primary btn-block" style="margin-bottom: 10px">
+      </form>
+    </div>
+    <div class="col-xs-12 col-md-6">
+      <% for(var x = 0; x < pollOptions.length; x++) { %>
+        <p><%=pollOptions[x]%>: <%=pollValues[x]%></p>
+      <% } %>
+    </div>    
+  </div> 
+</div>
+
+</body>
+</html>

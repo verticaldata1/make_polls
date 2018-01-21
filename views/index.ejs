@@ -1,12 +1,24 @@
 <% include _header %>
 
-<h1>Host an online poll!</h1>
+<div class="jumbotron" style="max-width: 80%; margin: auto">
+  <div class="text-center">
+    <h1>Host an online poll!</h1>
 
-<% if(currentUser) { %>
-    <a href="/new-poll" class="btn btn-primary">New Poll</a>
-<% } else { %>
-    <h3>Sign in to make new poll</h3>
-<% } %>
+    <% if(currentUser) { %>
+        <a href="/new-poll" class="btn btn-primary">New Poll</a>
+    <% } else { %>
+        <h3>Sign in to make one.</h3>
+    <% } %>
+    
+    <h4><br><br>Recent polls:<br><br></h4>
+    <div style="max-width: 60%; margin: auto">
+      <% recentPolls.forEach(function(data) { %>
+        <a href=<%=data.link%> class="btn btn-block well"><%=data.title%></a>
+      <% }) %>
+    </div>
+  </div>  
+  
+</div>
 
 </body>
 </html>
