@@ -1,0 +1,81 @@
+<% include _header %>
+
+<div class="jumbotron" style="max-width: 80%; margin: auto">
+  <div class="row form-space">
+    <div class="col-xs-12 col-md-6">
+      <form action=<%=pollRedirect%> method="post">
+        <div class="form-group">
+          <label for="poll-selections" style="font-size:20px"><%=pollUser%> asks "<%= pollTitle %>"</label>
+          <select name="optionSelect" class="form-control poll-selection" id="poll-selections">
+            <% for(var x = 0; x < pollOptions.length; x++) { %>
+              <option><%=pollOptions[x]%></option>
+            <% } %>        
+          </select>
+          <label for="poll-custom" style="font-size:16px">Select above or type a new option below:</label>
+          <input name="optionCustom" id="poll-custom" type="text" class="form-control" placeholder="Custom">   
+        </div>
+        <input type="submit" value="Submit" class="btn btn-primary btn-block" style="margin-bottom: 10px">
+      </form>
+    </div>
+    <div class="col-xs-12 col-md-6">
+      <!--
+      <% for(var x = 0; x < pollOptions.length; x++) { %>
+        <p><%=pollOptions[x]%>: <%=pollValues[x]%></p>
+      <% } %>
+      -->
+      <canvas id="myChart" width="300" height="300"></canvas>
+    </div>    
+  </div> 
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.1/Chart.bundle.js" type="text/javascript">
+</script>
+<script>
+var ctx = document.getElementById("myChart").getContext('2d');
+  
+var dataArr = [<%=pollValues%>];
+var labelArr = [];
+var colorArr = [];
+<% for(var x = 0; x < pollOptions.length; x++) { %>
+  labelArr.push("<%=pollOptions[x]%>");
+  colorArr.push(getRandomColor());
+<% } %>
+                
+function getRandomColor() {
+  var letters = '0123456789ABCDEF'.split('');
+  var color = '#';
+  for (var i = 0; i < 6; i++ ) {
+    color += letters[Math.floor(Math.random() * 16)];
+  }
+  return color;
+}
+  console.log(colorArr);
+  
+var myChart = new Chart(ctx, {
+    type: 'horizontalBar',
+    data: {
+      datasets: [{
+          data: dataArr,
+          label: 'Votes',
+          backgroundColor: colorArr
+      }],
+      // These labels appear in the legend and in the tooltips when hovering different arcs
+      labels: labelArr
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        xAxes: [{
+          ticks: {
+            beginAtZero:true,
+            stepSize : 1
+          }
+        }]
+      }
+    }
+});
+</script>
+
+</body>
+</html>
