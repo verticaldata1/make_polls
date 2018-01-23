@@ -121,28 +121,32 @@ app.get("/new-poll", function(req, res) {
 app.post("/new-poll", isAuthenticated, function(req, res, next) {
   var title = req.body.title;
   var options = req.body.options;
+  options = options.replace(/,+$/g, "");
   options = options.split(",");
   var values = [];
   for(var ii = 0; ii < options.length; ii++) {
     values.push(0); 
+    options[ii] = options[ii].replace(/^\s+|\s+$/g, "");
   }
+  
+  var randNum = Math.floor((Math.random() * 2147483647 + 5));
   
   Poll.count({}, function(err , count){
     var newPoll = new Poll({
-      number: count,
+      number: randNum,
       createdBy: res.locals.currentUser.username,
       title: title,
       options: options,
       values: values
     });
     newPoll.save(function(err) {
-      req.user.polls.push(count);
+      req.user.polls.push(randNum);
       req.user.save(function(err) {
         if(err) {
             next(err);
             return;
         }
-        res.redirect("/poll/"+count);
+        res.redirect("/poll/"+randNum);
       });
     });        
   });
@@ -179,15 +183,27 @@ app.post("/poll/:num", function(req, res, next) {
       return res.redirect(pollUrl);
     }
     
-    var idx = poll.options.indexOf(req.body.optionSelect);
-    if(idx === -1) {
-      req.flash("error", "Error casting vote. Selection not found.");
-      return res.redirect(pollUrl);
-    }    
     var curVals = poll.values;
-    curVals[idx]++;
+    var curOptions = poll.options;
     
-    Poll.update({number: num}, {values: curVals}, function(err) {
+    if(req.body.optionCustom) {
+      if(poll.options.indexOf(req.body.optionCustom) !== -1) {
+        req.flash("error", "Custom option entered, but that option already exists!");
+        return res.redirect(pollUrl);
+      }
+      curOptions.push(req.body.optionCustom);
+      curVals.push(1);
+    }
+    else {    
+      var idx = poll.options.indexOf(req.body.optionSelect);
+      if(idx === -1) {
+        req.flash("error", "Error casting vote. Selection not found.");
+        return res.redirect(pollUrl);
+      }        
+      curVals[idx]++;
+    }
+    
+    Poll.update({number: num}, {values: curVals, options: curOptions}, function(err) {
       if(err) {
         console.log(err);
         next(err);
@@ -211,12 +227,33 @@ app.get("/profile/:username", function(req, res, next) {
       for(var ii = polls.length - 1; ii >= 0; ii--) {
         var title = polls[ii].title;
         var link = "/poll/"+polls[ii].number;
-        res.locals.userPolls.push({title: title, link: link});
+        var deleteLink = "/delete/"+polls[ii].number;
+        res.locals.userPolls.push({title: title, link: link, deleteLink: deleteLink});
       }
     }    
     res.render("profile");
   });
   
+});
+
+app.get("/delete/:num", isAuthenticated, function(req, res, next) {
+  var num = req.params.num;
+  
+  Poll.findOne({number: num}, function(err, poll) {
+    if(err) { return next(err); }
+    if(!poll) {
+      req.flash("error", "Deletion error. Poll not found.");
+      return res.redirect("/");
+    }
+    if(!res.locals.currentUser || poll.createdBy != res.locals.currentUser.username) {
+      req.flash("error", "Deletion error. Not owner of the poll.");
+      return res.redirect("/");
+    }
+    
+    Poll.find({ number: num }).remove().exec();
+    res.redirect("/profile/"+res.locals.currentUser.username);
+        
+  });
 });
       
 

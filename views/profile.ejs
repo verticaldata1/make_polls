@@ -2,12 +2,16 @@
 
 <div class="jumbotron text-center" style="max-width: 80%; margin: auto">
   <h4><%=username%>'s polls:<br><br></h4>
-  <div style="max-width: 60%; margin: auto">
-    <% userPolls.forEach(function(data) { %>
-      <a href=<%=data.link%> class="btn btn-block well"><%=data.title%></a>
-    <% }) %>
-  </div>
-  
+  <% userPolls.forEach(function(data) { %>
+    <div style="max-width: 60%; height: 80px; margin: auto">
+      <% if(currentUser && currentUser.username == username) { %>
+        <a href=<%=data.link%> class="btn btn-block well" style="overflow: hidden; width:90%; float: left"><%=data.title%></a>       
+        <a href=<%=data.deleteLink%> class="btn btn-danger delete-button" style="width:10%; float: right; margin-top: 12px"><i class="fa fa-trash"></i></a> 
+      <% } else { %>
+        <a href=<%=data.link%> class="btn btn-block well" style="overflow: hidden; width:100%; float: left"><%=data.title%></a>       
+      <% } %>
+    </div>  
+  <% }) %>
 </div>
 
 </body>
